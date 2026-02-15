@@ -1,0 +1,28 @@
+spring:
+  app:
+    name: "${APP_NAME}"
+    env: "${ENV}"
+    port: "${PORT}"
+
+  datasource:
+    url: "${MYSQL_URL}"
+    database: "${DATABASE}"
+    root_password: "${ROOT_PASSWORD}"
+    username: "${USERNAME}"
+    password: "${PASSWORD}"
+    port: "${PORT}"
+    driver-class-name: "${DRIVER-CLASS-NAME}"
+
+
+API:
+  kiwoom:
+    host: "${HOST}"
+    oauth: "${OAUTH_ENDPOINT}"
+    search: "${SEARCH_ENDPOINT}"
+    app_key: "${APP_KEY}"
+    secret_key: "${SECRET_KEY}"
+  discord:
+    webhook_url: "${WEBHOOK_URL}"
+
+
+

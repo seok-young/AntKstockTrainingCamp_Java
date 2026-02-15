@@ -1,0 +1,20 @@
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: ant-mysql
+    restart: always
+    environment:
+      mysql_root_password: "${ROOT_PASSWORD}"
+      mysql_database: "${DATABASE}"
+      mysql_user: "${USERNAME}"
+      mysql_password: "${PASSWORD}"
+    ports:
+      - "3306:3306"
+    volumes:
+      - .\\mysql_data:/var/lib/mysql
+      - ./mysql/init-scripts:/docker-entrypoint-initd.b
+
+
+volumes:
+  mysql-data:
+    driver: local

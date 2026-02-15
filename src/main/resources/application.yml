@@ -1,0 +1,25 @@
+server:
+  port: 8090
+  servlet:
+    encoding:
+      charset: UTF-8
+
+spring:
+  application:
+    name: AntKstockCamp
+  profiles:
+    active: dev
+    include: secret
+  logging:
+    level:
+      com.example.AntKstockCamp: DEBUG
+      org:
+        data:
+          jpa: DEBUG
+  jpa:
+    show-sql: true
+
+  docker:
+    compose:
+      enabled: false
+
