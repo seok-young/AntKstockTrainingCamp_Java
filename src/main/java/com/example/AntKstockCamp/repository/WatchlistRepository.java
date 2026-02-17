@@ -7,6 +7,8 @@ import org.springframework.data.jpa.repository.Query;
 import java.util.List;
 
 public interface WatchlistRepository extends JpaRepository<Watchlist, Long> {
+    // 관심 종목만 가져오기
     @Query("SELECT w.ticker.symbol FROM Watchlist w WHERE w.isWatching = true")
     List<String> findActiveTickerSymbols();
+
 }
