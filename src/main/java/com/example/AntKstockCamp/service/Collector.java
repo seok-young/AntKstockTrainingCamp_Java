@@ -37,4 +37,8 @@ public class Collector {
         }
     }
 
+//    public preprocess_prices(){
+//
+//    }
+
 }

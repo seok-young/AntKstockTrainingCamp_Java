@@ -9,6 +9,6 @@ import java.time.LocalDate;
 import java.util.Optional;
 
 public interface DailyPriceRepository extends JpaRepository<DailyPrice,Long> {
-    @Query("SELECT MAX(d.date) FROM DailyPrice d WHERE d.tickerSymbol = :symbol")
+    @Query("SELECT MAX(d.date) FROM DailyPrice d WHERE d.ticker = :symbol")
     Optional<LocalDate> findLateDateBySymbol(@Param("symbol") String symbol);
 }

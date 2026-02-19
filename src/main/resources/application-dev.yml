@@ -1,28 +1,28 @@
 spring:
   app:
-    name: "${APP_NAME}"
-    env: "${ENV}"
-    port: "${PORT}"
+    name: "${dev.spring.app.name}"
+    env: "${dev.spring.app.env}"
+    port: "${dev.spring.app.port}"
 
   datasource:
-    url: "${MYSQL_URL}"
-    database: "${DATABASE}"
-    root_password: "${ROOT_PASSWORD}"
-    username: "${USERNAME}"
-    password: "${PASSWORD}"
-    port: "${PORT}"
-    driver-class-name: "${DRIVER-CLASS-NAME}"
+    url: "jdbc:mysql://127.0.0.1:3306/ant_training_db"
+    database: "${dev.spring.mysql.database}"
+    root_password: "${dev.spring.mysql.root_password}"
+    username: "${dev.spring.mysql.username}"
+    password: "${dev.spring.mysql.password}"
+    port: "${dev.spring.mysql.port}"
+
 
 
 API:
   kiwoom:
-    host: "${HOST}"
-    oauth: "${OAUTH_ENDPOINT}"
-    search: "${SEARCH_ENDPOINT}"
-    app_key: "${APP_KEY}"
-    secret_key: "${SECRET_KEY}"
+    host: "${kiwoom.host}"
+    oauth: "${kiwoom.oauth_endpoint}"
+    search: "${kiwoom.search_endpoint}"
+    app_key: "${kiwoom.kiwoom_app_key}"
+    secret_key: "${kiwoom.kiwoom_secret_key}"
   discord:
-    webhook_url: "${WEBHOOK_URL}"
+    webhook_url: "${discord.webhook_url}"
 
 
 

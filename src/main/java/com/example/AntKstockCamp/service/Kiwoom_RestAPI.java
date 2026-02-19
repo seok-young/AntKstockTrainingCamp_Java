@@ -1,9 +1,9 @@
 package com.example.AntKstockCamp.service;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 
@@ -24,20 +24,28 @@ public class Kiwoom_RestAPI {
     @Value("${API.kiwoom.secret_key}")
     private String secretKey;
 
+    @Value("${API.kiwoom.host}")
+    private String host;
+
     @Value(("${API.kiwoom.oauth}"))
     private String oauthEndPoint;
 
     @Value(("${API.kiwoom.search}"))
     private String searchEndPoint;
 
-    private record TokenResponse(String token) {}
-    private record ApiResponse(List<Map<String, Object>> data, String contYn, String nextKey) {}
+    public record TokenResponse(
+            @JsonProperty("token") String token,
+            @JsonProperty("return_code") Integer return_code,
+            @JsonProperty("return_msg") String return_msg
+    ) {}
+    public record ApiResponse(List<Map<String, Object>> data, String contYn, String nextKey) {}
 
 
     /*
     *  kiwoom 접근 토큰 발급
     */
-    public String getToken(){
+    public String getToken() {
+        System.out.println("oauthEndpoint = " + oauthEndPoint);
         try {
 
             Map<String, String> body = Map.of(
@@ -46,41 +54,44 @@ public class Kiwoom_RestAPI {
                     "secretkey", secretKey
             );
 
-            return kiwoomRestClient.post()
+            TokenResponse response = kiwoomRestClient.post()
                     .uri(oauthEndPoint)
                     .body(body)
                     .retrieve()
-                    .onStatus(HttpStatusCode::isError, (request, response) -> {
-                        log.error("Error during calling Kiwoom API : {}", response.getStatusCode());
-                        throw new RuntimeException("Fail getting Kiwoom access token");
-                    })
-                    .body(TokenResponse.class)
-                    .token();
+                    .body(TokenResponse.class);
+
+            if (response != null && response.token() != null) {
+                System.out.println("토큰: " + response.token());
+                return response.token();
+            }
+            return null;
         } catch (Exception e) {
-            log.error("Error during getting Kiwoom access token");
+            e.printStackTrace();
             return null;
         }
     }
 
     /*
-     *  kiwoom 주가 조회
+     *  kiwoom 주가 수집
      */
     public ApiResponse getPrice(String token,
                                 Map<String, Object> data,
                                 String contYn,
                                 String nextKey){
         try{
+            System.out.println("getPrice 진입 성공");
             var responseEntity = kiwoomRestClient.post()
                     .uri(searchEndPoint)
-                    .header("autorization", "Bearer " + token)
+                    .header("authorization", "Bearer " + token)
                     .header("cont-yn", contYn)
                     .header("next-key", nextKey)
                     .header("api-id", "ka10086")
                     .body(data)
                     .retrieve()
                     .toEntity(Map.class);
-
+            System.out.println("키움 응답 수신 완료: " + responseEntity.getStatusCode());
             Map<String, Object> body = responseEntity.getBody();
+            System.out.println("응답 바디 내용: " + body);
             String resContYn = responseEntity.getHeaders().getFirst("cont-yn");
             String resNextKey = responseEntity.getHeaders().getFirst("next-key");
 
