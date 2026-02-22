@@ -1,6 +1,9 @@
 package com.example.AntKstockCamp.service;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import com.example.AntKstockCamp.dto.ApiResponse;
+import com.example.AntKstockCamp.dto.DailyPriceDto;
+import com.example.AntKstockCamp.dto.TokenResponse;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -16,6 +19,7 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class Kiwoom_RestAPI {
 
+    private final ObjectMapper objectMapper;
     private final RestClient kiwoomRestClient;
 
     @Value("${API.kiwoom.app_key}")
@@ -33,12 +37,6 @@ public class Kiwoom_RestAPI {
     @Value(("${API.kiwoom.search}"))
     private String searchEndPoint;
 
-    public record TokenResponse(
-            @JsonProperty("token") String token,
-            @JsonProperty("return_code") Integer return_code,
-            @JsonProperty("return_msg") String return_msg
-    ) {}
-    public record ApiResponse(List<Map<String, Object>> data, String contYn, String nextKey) {}
 
 
     /*
@@ -61,7 +59,7 @@ public class Kiwoom_RestAPI {
                     .body(TokenResponse.class);
 
             if (response != null && response.token() != null) {
-                System.out.println("토큰: " + response.token());
+                System.out.println("토큰 발급 성공" );
                 return response.token();
             }
             return null;
@@ -79,7 +77,6 @@ public class Kiwoom_RestAPI {
                                 String contYn,
                                 String nextKey){
         try{
-            System.out.println("getPrice 진입 성공");
             var responseEntity = kiwoomRestClient.post()
                     .uri(searchEndPoint)
                     .header("authorization", "Bearer " + token)
@@ -89,15 +86,18 @@ public class Kiwoom_RestAPI {
                     .body(data)
                     .retrieve()
                     .toEntity(Map.class);
-            System.out.println("키움 응답 수신 완료: " + responseEntity.getStatusCode());
             Map<String, Object> body = responseEntity.getBody();
             System.out.println("응답 바디 내용: " + body);
             String resContYn = responseEntity.getHeaders().getFirst("cont-yn");
             String resNextKey = responseEntity.getHeaders().getFirst("next-key");
 
-            List<Map<String, Object>> dailyData = (List<Map<String, Object>>) body.get("daly_stkpc");
+            List<Map<String, Object>> dailyDataRaw = (List<Map<String, Object>>) body.get("daly_stkpc");
 
-            return new ApiResponse(dailyData, resContYn, resNextKey);
+            List<DailyPriceDto> dailyPriceDtos = dailyDataRaw.stream()
+                    .map(map -> objectMapper.convertValue(map, DailyPriceDto.class))
+                    .toList();
+
+            return new ApiResponse(dailyPriceDtos, resContYn, resNextKey);
         } catch (Exception e) {
             log.error("Error during Kiwoom API 10086{}, ", e.getMessage());
             return null;
