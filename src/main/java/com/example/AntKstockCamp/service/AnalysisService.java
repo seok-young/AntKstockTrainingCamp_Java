@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -45,9 +46,12 @@ public class AnalysisService {
                 ).toList();
     }
 
-    public IndicatorDto getIndicators(String symbol, LocalDate targetDate){
+    public Optional<IndicatorDto> getIndicators(String symbol, LocalDate targetDate){
         List<DailyPriceDto> dpDtoList = getPriceDataForAnalysis(symbol, targetDate);
 
+        if(dpDtoList.isEmpty()){
+            return Optional.empty();;
+        }
         List<Double> prices = dpDtoList.stream()
                 .map(dto -> Double.parseDouble(dto.close_pric()))
                 .toList();
@@ -60,21 +64,27 @@ public class AnalysisService {
         Map<String, double[]> macd = indicatorCalculator.calculateMACD(prices);
         Map<String, double[]> bb =indicatorCalculator.calculateBB(prices,20,2);
 
+        double lastprice = 0.0;
+        lastprice = prices.get(prices.size()-1);
+
         int lastIdx = dpDtoList.size()-1;
         IndicatorDto indicators = IndicatorDto.builder()
-                .ma5(ma5[lastIdx])
-                .ma20(ma20[lastIdx])
-                .ma60(ma60[lastIdx])
-                .ma120(ma120[lastIdx])
-                .rsi(rsi[lastIdx])
-                .macd(macd.get("macd")[lastIdx])
-                .macdSignal(macd.get("signal")[lastIdx])
-                .macdHist(macd.get("hist")[lastIdx])
-                .bbUpper(bb.get("upper")[lastIdx])
-                .bbMiddle(bb.get("middle")[lastIdx])
-                .bbLower(bb.get("lower")[lastIdx])
+                .ticker(symbol)
+                .date(targetDate)
+                .close_price((float) lastprice)
+                .ma5((float) ma5[lastIdx])
+                .ma20((float) ma20[lastIdx])
+                .ma60((float) ma60[lastIdx])
+                .ma120((float) ma120[lastIdx])
+                .rsi((float) rsi[lastIdx])
+                .macd((float) macd.get("macd")[lastIdx])
+                .macdSignal((float) macd.get("signal")[lastIdx])
+                .macdHist((float) macd.get("hist")[lastIdx])
+                .bbUpper((float) bb.get("upper")[lastIdx])
+                .bbMiddle((float) bb.get("middle")[lastIdx])
+                .bbLower((float) bb.get("lower")[lastIdx])
                 .build();
-        return indicators;
+        return Optional.of(indicators);
     }
 
 

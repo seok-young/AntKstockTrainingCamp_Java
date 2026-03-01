@@ -2,17 +2,22 @@ package com.example.AntKstockCamp.dto;
 
 import lombok.Builder;
 
+import java.time.LocalDate;
+
 @Builder
 public record IndicatorDto(
-        double ma5,
-        double ma20,
-        double ma60,
-        double ma120,
-        double rsi,
-        double macd,
-        double macdSignal,
-        double macdHist,
-        double bbUpper,
-        double bbMiddle,
-        double bbLower
+        String ticker,
+        LocalDate date,
+        float close_price,
+        float ma5,
+        float ma20,
+        float ma60,
+        float ma120,
+        float rsi,
+        float macd,
+        float macdSignal,
+        float macdHist,
+        float bbUpper,
+        float bbMiddle,
+        float bbLower
 ) {}
