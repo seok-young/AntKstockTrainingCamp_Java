@@ -50,7 +50,7 @@ public class AnalysisService {
         List<DailyPriceDto> dpDtoList = getPriceDataForAnalysis(symbol, targetDate);
 
         if(dpDtoList.isEmpty()){
-            return Optional.empty();;
+            return Optional.empty();
         }
         List<Double> prices = dpDtoList.stream()
                 .map(dto -> Double.parseDouble(dto.close_pric()))
