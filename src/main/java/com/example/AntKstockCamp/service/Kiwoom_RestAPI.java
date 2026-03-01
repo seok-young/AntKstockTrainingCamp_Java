@@ -59,6 +59,7 @@ public class Kiwoom_RestAPI {
                     .body(TokenResponse.class);
 
             if (response != null && response.token() != null) {
+                System.out.println("발급된 토큰 확인: " + response.token());
                 System.out.println("토큰 발급 성공" );
                 return response.token();
             }

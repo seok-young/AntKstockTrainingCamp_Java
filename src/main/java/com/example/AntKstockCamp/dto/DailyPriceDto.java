@@ -3,10 +3,12 @@ package com.example.AntKstockCamp.dto;
 import com.example.AntKstockCamp.domain.Entity.DailyPrice;
 import com.example.AntKstockCamp.domain.Entity.Ticker;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import lombok.Builder;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 
+@Builder
 @JsonIgnoreProperties(ignoreUnknown = true)
 public record DailyPriceDto (
         String date,

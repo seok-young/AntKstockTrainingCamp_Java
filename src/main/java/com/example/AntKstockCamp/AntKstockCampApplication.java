@@ -1,11 +1,13 @@
 package com.example.AntKstockCamp;
 
-import com.example.AntKstockCamp.service.Collector;
+import com.example.AntKstockCamp.service.AnalysisService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
+
+import java.time.LocalDate;
 
 @SpringBootApplication
 public class AntKstockCampApplication {
@@ -17,11 +19,23 @@ public class AntKstockCampApplication {
 		SpringApplication.run(AntKstockCampApplication.class, args);
 	}
 
+//	@Bean
+//	CommandLineRunner run(Collector collector) {
+//		return args -> {
+//			collector.runCollection();
+//			System.out.println("Success saving all the price data");
+//		};
+//	}
+
 	@Bean
-	CommandLineRunner run(Collector collector) {
+	CommandLineRunner run(AnalysisService analysisService) {
 		return args -> {
-			collector.runCollection();
-			System.out.println("Success saving all the price data");
+			var response = analysisService.getPriceDataForAnalysis("000270", LocalDate.of(2025, 12, 31));
+			if(response != null) {
+				System.out.println("주가정보" + response);
+			} else {
+				System.out.println("주가정보 수집 실패");
+			}
 		};
 	}
 
