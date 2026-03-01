@@ -39,7 +39,8 @@ public class AnalysisService {
                         .trde_qty(String.valueOf(entity.getTrdeQty()))
                         .build()
                 ).toList();
-
     }
+
+
 
 }
