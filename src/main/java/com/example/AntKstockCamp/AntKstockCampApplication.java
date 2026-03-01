@@ -1,5 +1,6 @@
 package com.example.AntKstockCamp;
 
+import com.example.AntKstockCamp.dto.IndicatorDto;
 import com.example.AntKstockCamp.service.AnalysisService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
@@ -33,6 +34,8 @@ public class AntKstockCampApplication {
 			var response = analysisService.getPriceDataForAnalysis("000270", LocalDate.of(2025, 12, 31));
 			if(response != null) {
 				System.out.println("주가정보" + response);
+				IndicatorDto indicators = analysisService.getIndicators("000270",LocalDate.of(2025, 12, 31));
+				System.out.println("지표정보" + indicators);
 			} else {
 				System.out.println("주가정보 수집 실패");
 			}

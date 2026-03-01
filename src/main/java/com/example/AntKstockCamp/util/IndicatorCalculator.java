@@ -23,6 +23,7 @@ public class IndicatorCalculator {
         return ma;
     }
 
+    // List용
     public  double[] calculateEMA(List<Double> prices, int span){
         double[] ema = new double[prices.size()];
         double multiplier = 2.0 / (span+1);
@@ -35,6 +36,49 @@ public class IndicatorCalculator {
             }
         }
         return ema;
+    }
+
+    //array용
+    public  double[] calculateEMA(double[] prices, int span){
+        double[] ema = new double[prices.length];
+        double multiplier = 2.0 / (span+1);
+
+        for (int i = 0; i < prices.length; i++){
+            if(i==0){
+                ema[i] = prices[i];
+            } else {
+                ema[i] = (prices[i] - ema[i-1]) * multiplier + ema[i-1];
+            }
+        }
+        return ema;
+    }
+    public Map<String, double[]> calculateMACD(List<Double> prices){
+        if (prices.size() < 26) {
+            System.out.println("you need price Data for More than 26 days");
+            return Map.of("macd",new double[0],
+                    "signal",new double[0],
+                    "hist",new double[0]);
+        }
+
+        double[] ema12 = calculateEMA(prices,12);
+        double[] ema26 = calculateEMA(prices,26);
+
+        double[] macd = new double[prices.size()];
+        for (int i = 0; i < prices.size(); i++){
+            macd[i] = ema12[i] - ema26[i];
+        }
+
+        double[] macdSignal = calculateEMA(macd,9);
+
+        double[] macdHist = new double[prices.size()];
+        for (int i=0; i< prices.size(); i++){
+            macdHist[i] = macd[i] - macdSignal[i];
+        }
+        return Map.of(
+                "macd",macd,
+                "signal",macdSignal,
+                "hist",macdHist
+        );
     }
 
     public double[] calculateRSI(List<Double> prices, int period){

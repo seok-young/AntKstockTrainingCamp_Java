@@ -14,7 +14,7 @@ import java.time.LocalDate;
 @Table(name = "analysis", uniqueConstraints = {
         @UniqueConstraint(name = "_ticker_date_uc", columnNames = {"ticker_symbol", "date"})
 })
-public class Analysis {
+public class Indicator {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

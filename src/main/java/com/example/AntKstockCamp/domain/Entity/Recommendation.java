@@ -27,7 +27,7 @@ public class Recommendation {
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "analysis_id", referencedColumnName = "id", nullable = false)
-    private Analysis analysis;
+    private Indicator indicator;
 
     @Column(length = 10, nullable = false)
     private String signalType;
