@@ -1,14 +1,11 @@
 package com.example.AntKstockCamp;
 
-import com.example.AntKstockCamp.dto.AnalysisDto;
-import com.example.AntKstockCamp.service.AnalysisService;
+import com.example.AntKstockCamp.service.Collector;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
-
-import java.time.LocalDate;
 
 @SpringBootApplication
 public class AntKstockCampApplication {
@@ -29,17 +26,10 @@ public class AntKstockCampApplication {
 //	}
 
 	@Bean
-	CommandLineRunner run(AnalysisService analysisService) {
+	CommandLineRunner run(Collector collector) {
 		return args -> {
-			var response = analysisService.getPriceDataForAnalysis("000270", LocalDate.of(2025, 12, 31));
-			if(response != null) {
-				System.out.println("주가정보" + response);
-				AnalysisDto indicators = analysisService.getIndicators("000270",LocalDate.of(2025, 12, 31))
-								.orElse(null);
-				System.out.println("지표정보" + indicators);
-			} else {
-				System.out.println("주가정보 수집 실패");
-			}
+			collector.readStockCSV("Stock","C:\\work\\Project\\AntKstockTrainingCamp_Java\\AntKstockCamp\\src\\main\\resources\\data_0233_20251108.csv");
+//			collector.readETFCSV("C:\\work\\Project\\AntKstockTrainingCamp_Java\\AntKstockCamp\\src\\main\\resources\\etf_data_1606_20251123.csv");
 		};
 	}
 
