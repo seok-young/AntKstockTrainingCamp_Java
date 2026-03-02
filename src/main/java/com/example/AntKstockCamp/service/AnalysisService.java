@@ -1,11 +1,13 @@
 package com.example.AntKstockCamp.service;
 
-import com.example.AntKstockCamp.domain.Entity.Indicator;
+import com.example.AntKstockCamp.domain.Entity.Analysis;
 import com.example.AntKstockCamp.domain.Entity.DailyPrice;
+import com.example.AntKstockCamp.domain.Entity.Ticker;
 import com.example.AntKstockCamp.dto.DailyPriceDto;
-import com.example.AntKstockCamp.dto.IndicatorDto;
+import com.example.AntKstockCamp.dto.AnalysisDto;
 import com.example.AntKstockCamp.repository.AnalysisRepository;
 import com.example.AntKstockCamp.repository.DailyPriceRepository;
+import com.example.AntKstockCamp.repository.WatchlistRepository;
 import com.example.AntKstockCamp.util.IndicatorCalculator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -21,11 +23,12 @@ public class AnalysisService {
 
     private final AnalysisRepository analysisRepository;
     private final DailyPriceRepository dailyPriceRepository;
+    private final WatchlistRepository watchlistRepository;
     private final IndicatorCalculator indicatorCalculator;
 
     public LocalDate getLatesDateOfAnalysis(){
         return analysisRepository.findFirstByOrderByDateDesc()
-                .map(Indicator::getDate)
+                .map(Analysis::getDate)
                 .orElse(null);
     }
 
@@ -46,10 +49,12 @@ public class AnalysisService {
                 ).toList();
     }
 
-    public Optional<IndicatorDto> getIndicators(String symbol, LocalDate targetDate){
+
+    // 하루 지표 구하기
+    public Optional<AnalysisDto> getIndicators(String symbol, LocalDate targetDate){
         List<DailyPriceDto> dpDtoList = getPriceDataForAnalysis(symbol, targetDate);
 
-        if(dpDtoList.isEmpty()){
+        if((dpDtoList.isEmpty()) | (dpDtoList.size() < 120)){
             return Optional.empty();
         }
         List<Double> prices = dpDtoList.stream()
@@ -68,7 +73,7 @@ public class AnalysisService {
         lastprice = prices.get(prices.size()-1);
 
         int lastIdx = dpDtoList.size()-1;
-        IndicatorDto indicators = IndicatorDto.builder()
+        AnalysisDto indicators = AnalysisDto.builder()
                 .ticker(symbol)
                 .date(targetDate)
                 .close_price((float) lastprice)
@@ -87,6 +92,14 @@ public class AnalysisService {
         return Optional.of(indicators);
     }
 
+    public void saveAnalysis(String symbol, LocalDate targetDate){
+        Ticker ticker = watchlistRepository.findByTicker_Symbol(symbol)
+                .orElseThrow(()->new RuntimeException("There is no Ticker with that symbol"));
+        AnalysisDto analysisDto = getIndicators(symbol, targetDate)
+                .orElseThrow(()-> new RuntimeException("There is not enough data for Analysis"));
+        Analysis analysis = analysisDto.toEntity(ticker);
 
+        analysisRepository.save(analysis);
+    }
 
 }

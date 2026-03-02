@@ -4,17 +4,23 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.experimental.SuperBuilder;
 
 import java.time.LocalDate;
 
 @Entity
 @Getter
 @Setter
+@SuperBuilder
 @NoArgsConstructor
 @Table(name = "analysis", uniqueConstraints = {
         @UniqueConstraint(name = "_ticker_date_uc", columnNames = {"ticker_symbol", "date"})
 })
-public class Indicator {
+@org.hibernate.annotations.Check(
+        constraints = "close_Price >= 0 AND ma5 >= 0 AND ma20 >= 0 AND ma60 >= 0 AND ma120 >= 0 AND rsi >= 0 AND rsi <=100"
+)
+
+public class Analysis {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -26,6 +32,7 @@ public class Indicator {
     @Column(nullable = false)
     private LocalDate date;
 
+    @Column(name = "close_price")
     private Float closePrice;
     private Float ma5;
     private Float ma20;

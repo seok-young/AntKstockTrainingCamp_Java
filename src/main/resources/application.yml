@@ -18,6 +18,8 @@ spring:
           jpa: DEBUG
   jpa:
     show-sql: true
+    hibernate:
+      ddl-auto: update
 
   docker:
     compose:

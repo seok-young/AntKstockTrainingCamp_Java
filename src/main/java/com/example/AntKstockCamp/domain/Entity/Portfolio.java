@@ -22,7 +22,7 @@ public class Portfolio {
     private Ticker ticker;
 
     @OneToOne
-    @JoinColumn(name = "recommendation_id", referencedColumnName = "id", nullable = false)
+    @JoinColumn(name = "recommendation_id", referencedColumnName = "id", nullable = false, unique = true)
     private Recommendation recommendation;
 
     private Integer quantity;
