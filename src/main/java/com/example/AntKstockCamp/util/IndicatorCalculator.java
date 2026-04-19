@@ -53,25 +53,26 @@ public class IndicatorCalculator {
         return ema;
     }
     public Map<String, double[]> calculateMACD(List<Double> prices){
-        if (prices.size() < 26) {
-            System.out.println("you need price Data for More than 26 days");
-            return Map.of("macd",new double[0],
-                    "signal",new double[0],
-                    "hist",new double[0]);
+        int size = prices.size();
+
+        if (size < 2) {
+            return Map.of("macd",new double[size],
+                    "signal",new double[size],
+                    "hist",new double[size]);
         }
 
         double[] ema12 = calculateEMA(prices,12);
         double[] ema26 = calculateEMA(prices,26);
 
-        double[] macd = new double[prices.size()];
-        for (int i = 0; i < prices.size(); i++){
+        double[] macd = new double[size];
+        for (int i = 0; i < size; i++){
             macd[i] = ema12[i] - ema26[i];
         }
 
         double[] macdSignal = calculateEMA(macd,9);
 
-        double[] macdHist = new double[prices.size()];
-        for (int i=0; i< prices.size(); i++){
+        double[] macdHist = new double[size];
+        for (int i=0; i< size; i++){
             macdHist[i] = macd[i] - macdSignal[i];
         }
         return Map.of(
@@ -83,7 +84,7 @@ public class IndicatorCalculator {
 
     public double[] calculateRSI(List<Double> prices, int period){
         double[] rsi = new double[prices.size()];
-        if(prices.size() < period) return rsi;
+        if(prices.size() <= period) return rsi;
 
         double avgGain = 0, avgLoss = 0;
 
@@ -95,7 +96,9 @@ public class IndicatorCalculator {
 
         avgGain /= period;
         avgLoss /= period;
-        rsi[period] = 100 - (100 / (1 + (avgGain / avgLoss)));
+
+        double initialRs = (avgLoss == 0) ? 0 : (avgGain/avgLoss);
+        rsi[period] = 100 - (100 / (1 + initialRs));
 
         for (int i = period +1; i < prices.size(); i++){
             double diff = prices.get(i) - prices.get(i-1);
@@ -112,9 +115,14 @@ public class IndicatorCalculator {
     }
 
     public Map<String, double[]> calculateBB(List<Double> prices, int window, double stdDev){
+        int size = prices.size();
         double[] middle = calculateMA(prices, window);
-        double[] upper = new double[prices.size()];
-        double[] lower = new double[prices.size()];
+        double[] upper = new double[size];
+        double[] lower = new double[size];
+
+        if (size < window) {
+            return  Map.of("middle", middle, "upper", upper, "lower", lower);
+        }
 
         for (int i = window - 1; i < prices.size(); i++ ){
             double sum =0;

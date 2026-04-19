@@ -33,6 +33,13 @@ public class Collector {
     private final Kiwoom_RestAPI kiwoomRestAPI;
 
 
+    private Long parsePrice(String value) {
+        if (value == null || value.isBlank()) return 0L;
+        // 마이너스 기호, 콤마, 공백 제거 후 숫자만 추출
+        String cleaned = value.replaceAll("[^0-9]", "");
+        return cleaned.isEmpty() ? 0L : Long.parseLong(cleaned);
+    }
+
 
     /*
      * 주식 메타데이터 불러오기
@@ -186,7 +193,7 @@ public class Collector {
     /*
     * 관심종목 불러오기
     */
-    public List<Ticker> getInterestStocksID() {
+    public List<Watchlist> getInterestStocksID() {
         try {
             return watchlistRepository.findActiveTickerSymbols();
         } catch (RuntimeException e) {
@@ -201,7 +208,7 @@ public class Collector {
     public LocalDate getLateDate(String symbol) {
         try {
             return dailyPriceRepository.findLateDateBySymbol(symbol)
-                    .orElse(LocalDate.of(2000, 1, 1));
+                    .orElse(LocalDate.of(2025, 1, 1));
         } catch (RuntimeException e) {
             log.error("Error during gettingLateDate");
             return LocalDate.of(2000, 1, 1);
@@ -253,7 +260,7 @@ public class Collector {
 
 
         }
-
+        Collections.reverse(allData);
         return  allData;
     }
 
@@ -261,14 +268,14 @@ public class Collector {
      * 최초 종가 수집 오케스트라
      */
     public void firstRunCollection(){
-        List<Ticker> tickerList = watchlistRepository.findActiveTickerSymbols();
-        if (tickerList.isEmpty()){
+        List<Watchlist> watchlist = watchlistRepository.findActiveTickerSymbols();
+        if (watchlist.isEmpty()){
             System.out.println("No TickerSymbol in Interest");
             return;
         }
 
-        LocalDate lastDate = dailyPriceRepository.findLateDateBySymbol(tickerList.get(0).getSymbol())
-                .orElse(LocalDate.now().minusMonths(6));
+        LocalDate lastDate = dailyPriceRepository.findLateDateBySymbol(watchlist.get(0).getTicker().getSymbol())
+                .orElse(LocalDate.now().minusMonths(16));
 
         LocalDate startDate = lastDate.plusDays(1);
 
@@ -280,7 +287,8 @@ public class Collector {
 
         String token = kiwoomRestAPI.getToken();
 
-        for (Ticker ticker : tickerList){
+        for (Watchlist item : watchlist){
+            Ticker ticker = item.getTicker();
             List<DailyPriceDto> dtoList  = collectLongTermData(token, ticker.getSymbol(), startDate);
             List<DailyPrice> entities = dtoList.stream()
                     .filter(dto -> {
@@ -290,6 +298,8 @@ public class Collector {
                     })
                     .map(dto -> dto.toEntity(ticker))
                     .toList();
+
+
 
             if (!entities.isEmpty()) {
                 dailyPriceRepository.saveAll(entities);
@@ -305,13 +315,13 @@ public class Collector {
     * 종가 수집 오케스트라
     */
     public void runCollection(){
-        List<Ticker> tickerList = watchlistRepository.findActiveTickerSymbols();
-        if (tickerList.isEmpty()){
+        List<Watchlist> watchlist = watchlistRepository.findActiveTickerSymbols();
+        if (watchlist.isEmpty()){
             System.out.println("No TickerSymbol in Interest");
             return;
         }
 
-        LocalDate lastDate = dailyPriceRepository.findLateDateBySymbol(tickerList.get(0).getSymbol())
+        LocalDate lastDate = dailyPriceRepository.findLateDateBySymbol(watchlist.get(0).getTicker().getSymbol())
                 .orElse(LocalDate.now().minusMonths(6));
 
         LocalDate startDate = lastDate.plusDays(1);
@@ -324,7 +334,8 @@ public class Collector {
 
         String token = kiwoomRestAPI.getToken();
 
-        for (Ticker ticker : tickerList){
+        for (Watchlist item : watchlist){
+            Ticker ticker = item.getTicker();
             List<DailyPriceDto> dtoList  = collectLongTermData(token, ticker.getSymbol(), startDate);
             List<DailyPrice> entities = dtoList.stream()
                     .filter(dto -> {

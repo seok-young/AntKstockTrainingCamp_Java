@@ -20,7 +20,8 @@ public record DailyPriceDto (
 ){
     public Float parsePrice(String priceStr){
         if (priceStr == null || priceStr.isEmpty()) return 0f;
-        return  Float.parseFloat(priceStr.replace("+",""));
+        String cleaned = priceStr.replaceAll("[^0-9.]","");
+        return  cleaned.isEmpty() ? 0f : Float.parseFloat(cleaned);
     }
 
     public DailyPrice toEntity(Ticker tickerEntity){

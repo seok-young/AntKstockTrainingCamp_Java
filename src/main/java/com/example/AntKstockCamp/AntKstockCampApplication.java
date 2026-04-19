@@ -1,13 +1,14 @@
 package com.example.AntKstockCamp;
 
-import com.example.AntKstockCamp.service.Collector;
+import com.example.AntKstockCamp.domain.Entity.Watchlist;
+import com.example.AntKstockCamp.repository.WatchlistRepository;
+import com.example.AntKstockCamp.service.AnalysisService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @SpringBootApplication
@@ -29,21 +30,25 @@ public class AntKstockCampApplication {
 //	}
 
 	@Bean
-	CommandLineRunner run(Collector collector) {
-		List<String> stockList = new ArrayList<>(List.of("005930","000660","034730","001500","000270","035420","035720","207940","066570","005490",
-				"006400","051910","012330","009540","018880","105560","055550","086790","032830","034220",
-				"009150","009830","051900","096770","086280","010950","097950","090430","033780","011170",
-				"323410","247540","112040","377300","035760","086520","196170","263750","011200","357780"
-));
-		List<String> etfList = new ArrayList<>(List.of("069500","102110","229200","143860","091160","091170","228800","469790","360750","132030"));
-		// ETF, Stock
+	CommandLineRunner run(AnalysisService analysisService, WatchlistRepository watchlistRepository) {
 		return args -> {
-			collector.saveAllWatchlist(stockList, "Stock");
-			collector.saveAllWatchlist(etfList, "ETF");
-		};
-	}
+			List<Watchlist> ticker_list = watchlistRepository.findActiveTickerSymbols();
 
-}
+			for (Watchlist wl : ticker_list){
+				String symbol = wl.getTicker().getSymbol();
+				System.out.println("Start analyzing  - " + symbol);
+
+				try {
+					analysisService.saveAllAnalysis(symbol);
+				} catch (Exception e){
+					System.err.println("Error during analyzing" + symbol+ "  " +e.getMessage());
+				}
+			}
+			System.out.println("Finished analyzing all Stocks");
+		};
+	}}
+
+
 
 //	@Bean
 //	public CommandLineRunner test(Kiwoom_RestAPI kiwoomRestAPI){
