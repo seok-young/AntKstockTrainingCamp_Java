@@ -2,11 +2,14 @@ package com.example.AntKstockCamp.service;
 
 import com.example.AntKstockCamp.domain.Entity.DailyPrice;
 import com.example.AntKstockCamp.domain.Entity.Ticker;
+import com.example.AntKstockCamp.domain.Entity.Watchlist;
 import com.example.AntKstockCamp.dto.ApiResponse;
 import com.example.AntKstockCamp.dto.DailyPriceDto;
+import com.example.AntKstockCamp.dto.WatchlistDto;
 import com.example.AntKstockCamp.repository.DailyPriceRepository;
 import com.example.AntKstockCamp.repository.TickerRepository;
 import com.example.AntKstockCamp.repository.WatchlistRepository;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -87,7 +90,7 @@ public class Collector {
     }
 
     /*
-     * 주식 메타데이터 불러오기
+     * 주식(ETF) 메타데이터 불러오기
      */
     public void readETFCSV(String filepath) {
         try (BufferedReader br = new BufferedReader(
@@ -146,7 +149,37 @@ public class Collector {
     }
 
 
+    /*
+     * 관심종목 저장하기
+     */
+    @Transactional
+    public void saveWatchlist(WatchlistDto dto){
+        Ticker ticker = tickerRepository.findBySymbol(dto.symbol())
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 종목 코드입니다: " + dto.symbol()));
 
+        Watchlist watchlist = dto.toEntity(ticker);
+        watchlistRepository.save(watchlist);
+    }
+
+
+    /*
+     * 관심종목 목록으로 저장하기
+     */
+    @Transactional
+    public void saveAllWatchlist(List<String> symbols, String assetType){
+        List<Watchlist> watchlist = new ArrayList<>();
+
+        for (String symbol : symbols){
+            tickerRepository.findBySymbol(symbol).ifPresent(ticker -> {
+                watchlist.add(Watchlist.builder()
+                        .assetType(assetType)
+                        .ticker(ticker)
+                        .isWatching(true)
+                        .build());
+                    });
+        }
+        watchlistRepository.saveAll(watchlist);
+    }
 
 
 
