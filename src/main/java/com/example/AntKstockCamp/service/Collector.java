@@ -314,6 +314,7 @@ public class Collector {
     /*
     * 종가 수집 오케스트라
     */
+    @Transactional
     public void runCollection(){
         List<Watchlist> watchlist = watchlistRepository.findActiveTickerSymbols();
         if (watchlist.isEmpty()){

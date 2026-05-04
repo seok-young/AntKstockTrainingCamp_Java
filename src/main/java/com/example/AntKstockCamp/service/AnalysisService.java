@@ -113,6 +113,7 @@ public class AnalysisService {
         return Optional.of(indicators);
     }
 
+    // 최초 분석데이터 저장
     @Transactional
     public void saveAllAnalysis(String symbol) {
         Watchlist watchlist = watchlistRepository.findByTicker_Symbol(symbol)
@@ -180,7 +181,81 @@ public class AnalysisService {
         }
     }
 
+    // 분석 오케스트라 함수
+    @Transactional
+    public void runAnanlysis(String symbol){
+        Optional<Watchlist> watchlistOpt = watchlistRepository.findByTicker_Symbol(symbol);
 
+        if(watchlistOpt.isEmpty()) {
+            System.out.println( symbol+ " Not in Watchlist");
+            return;
+        }
+
+        Watchlist watchlist = watchlistOpt.get();
+        LocalDate tdy = LocalDate.now();
+        Optional<Analysis> analysisOpt = analysisRepository.findLastAnalysisByTicker(watchlist.getTicker());
+
+        if (analysisOpt.isEmpty()) {
+            System.out.println("No Analasis Data for " + symbol);
+            return;
+        }
+
+        LocalDate lastDate = analysisOpt.get().getDate();
+
+        List<Analysis> analysisList = new ArrayList<>();
+        LocalDate currentTargetDate = lastDate.plusDays(1);
+        while (!currentTargetDate.isAfter(tdy)) {
+            List<DailyPriceDto> dpDtoList = getRecentPriceData(symbol, currentTargetDate, 170);
+            System.out.println(currentTargetDate + "조회된 데이터 개수" + dpDtoList.size());
+
+            if (dpDtoList.size() > 120) {
+                List<Double> prices = dpDtoList.stream()
+                        .map(dto -> Double.parseDouble(dto.close_pric()))
+                        .toList();
+
+                double[] ma5 = indicatorCalculator.calculateMA(prices, 5);
+                double[] ma20 = indicatorCalculator.calculateMA(prices, 20);
+                double[] ma60 = indicatorCalculator.calculateMA(prices, 60);
+                double[] ma120 = indicatorCalculator.calculateMA(prices, 120);
+                double[] rsi = indicatorCalculator.calculateRSI(prices, 14);
+                Map<String, double[]> macd = indicatorCalculator.calculateMACD(prices);
+                Map<String, double[]> bb = indicatorCalculator.calculateBB(prices, 20, 2);
+
+                int lastIdx = dpDtoList.size() - 1;
+
+                Analysis analysis = Analysis.builder()
+                        .ticker(watchlist.getTicker())
+                        .date(currentTargetDate)
+                        .closePrice(Float.parseFloat(dpDtoList.get(lastIdx).close_pric()))
+                        .ma5((float) ma5[lastIdx])
+                        .ma20((float) ma20[lastIdx])
+                        .ma60((float) ma60[lastIdx])
+                        .ma120((float) ma120[lastIdx])
+                        .rsi((float) rsi[lastIdx])
+                        .macd((float) macd.get("macd")[lastIdx])
+                        .macdSignal((float) macd.get("signal")[lastIdx])
+                        .macdHist((float) macd.get("hist")[lastIdx])
+                        .bbUpper((float) bb.get("upper")[lastIdx])
+                        .bbMiddle((float) bb.get("middle")[lastIdx])
+                        .bbLower((float) bb.get("lower")[lastIdx])
+                        .build();
+
+                analysisList.add(analysis);
+                if (analysisList.size() >= 500) {
+                    System.out.println("--- 500개 중간 저장 시도 ---");
+                    analysisRepository.saveAll(analysisList);
+                    analysisList.clear();
+                }
+            }
+            currentTargetDate = currentTargetDate.plusDays(1);
+        }
+        if(!analysisList.isEmpty()){
+            System.out.println("--- 최종 " + analysisList.size() + "개 저장 시도 ---");
+            analysisRepository.saveAll(analysisList);
+        }
+    }
+
+    // 하루치 분석 및 저장
     public void saveAnalysis(String symbol, LocalDate targetDate){
         Watchlist watchlist = watchlistRepository.findByTicker_Symbol(symbol)
                 .orElseThrow(()->new RuntimeException("There is no Ticker with that symbol"));
